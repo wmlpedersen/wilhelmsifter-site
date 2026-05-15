@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WilhelmSifter — Take Control of Your Budget</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:   #2d6a4f;
+      --green-l: #52b788;
+      --cream:   #f8f4ef;
+      --ink:     #1a1a2e;
+      --muted:   #6b7280;
+      --border:  #d1cfc9;
+      --white:   #ffffff;
+      --radius:  12px;
+      --shadow:  0 4px 24px rgba(0,0,0,.10);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── NAV ─────────────────────────────────────────── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 2rem;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav-logo {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: var(--green);
+      letter-spacing: -.5px;
+      text-decoration: none;
+    }
+
+    .nav-cta {
+      background: var(--green);
+      color: var(--white);
+      border: none;
+      padding: .55rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: .9rem;
+      cursor: pointer;
+      font-family: inherit;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .nav-cta:hover { background: var(--green-l); }
+
+    /* ── HERO ─────────────────────────────────────────── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 5rem 1.5rem 4rem;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #d8f3dc;
+      color: var(--green);
+      font-size: .8rem;
+      font-family: sans-serif;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: .35rem .9rem;
+      border-radius: 999px;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: 1.25rem;
+    }
+
+    h1 span { color: var(--green); }
+
+    .hero-sub {
+      font-size: 1.15rem;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 500px;
+      margin-bottom: 2.5rem;
+      font-family: sans-serif;
+    }
+
+    /* ── SIGNUP FORM ──────────────────────────────────── */
+    .form-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2.25rem 2rem;
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .form-card h2 {
+      font-size: 1.2rem;
+      margin-bottom: .4rem;
+    }
+
+    .form-card p {
+      font-size: .9rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      font-family: sans-serif;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: .4rem;
+      margin-bottom: 1rem;
+    }
+
+    .field label {
+      font-size: .85rem;
+      font-family: sans-serif;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .field input {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .7rem 1rem;
+      font-size: 1rem;
+      font-family: sans-serif;
+      color: var(--ink);
+      background: var(--cream);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .field input:focus {
+      border-color: var(--green-l);
+      box-shadow: 0 0 0 3px rgba(82,183,136,.2);
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--green);
+      color: var(--white);
+      border: none;
+      padding: .85rem 1rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      margin-top: .5rem;
+    }
+
+    .submit-btn:hover { background: var(--green-l); }
+    .submit-btn:active { transform: scale(.98); }
+
+    .fine-print {
+      font-size: .78rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 1rem;
+      font-family: sans-serif;
+    }
+
+    /* success state */
+    .success-msg {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: .75rem;
+      padding: 1rem 0;
+    }
+
+    .success-icon {
+      width: 52px;
+      height: 52px;
+      background: #d8f3dc;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .success-msg h3 { font-size: 1.1rem; }
+    .success-msg p { font-size: .9rem; color: var(--muted); font-family: sans-serif; text-align: center; }
+
+    /* ── FEATURES ─────────────────────────────────────── */
+    .features {
+      padding: 4rem 1.5rem;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      text-align: center;
+      font-size: .8rem;
+      font-family: sans-serif;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--green);
+      margin-bottom: .75rem;
+    }
+
+    .features h2 {
+      text-align: center;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      margin-bottom: 2.5rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem 1.5rem;
+    }
+
+    .card-icon {
+      font-size: 1.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: .5rem;
+    }
+
+    .card p {
+      font-size: .9rem;
+      color: var(--muted);
+      line-height: 1.6;
+      font-family: sans-serif;
+    }
+
+    /* ── SOCIAL PROOF ─────────────────────────────────── */
+    .proof {
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 3.5rem 1.5rem;
+      text-align: center;
+    }
+
+    .proof-stat {
+      display: inline-flex;
+      flex-direction: column;
+      margin: 0 2rem;
+    }
+
+    .stat-number {
+      font-size: 2.25rem;
+      font-weight: bold;
+      color: var(--green);
+    }
+
+    .stat-label {
+      font-size: .9rem;
+      color: var(--muted);
+      font-family: sans-serif;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    /* ── FOOTER ───────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 2.5rem 1.5rem;
+      font-size: .85rem;
+      color: var(--muted);
+      font-family: sans-serif;
+      border-top: 1px solid var(--border);
+    }
+
+    footer a { color: var(--green); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 480px) {
+      nav { padding: 1rem; }
+      .form-card { padding: 1.75rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="#">WilhelmSifter</a>
+    <a class="nav-cta" href="#signup">Get Early Access</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <span class="badge">Early Access — Free</span>
+    <h1>Budget smarter.<br/><span>Stress less.</span></h1>
+    <p class="hero-sub">
+      WilhelmSifter helps you understand where your money goes,
+      plan ahead with confidence, and build habits that actually stick.
+    </p>
+
+    <!-- SIGNUP FORM -->
+    <div class="form-card" id="signup">
+      <h2>Join the waitlist</h2>
+      <p>Be first to know when we launch — no spam, ever.</p>
+
+      <form id="signup-form" onsubmit="handleSubmit(event)">
+        <div class="field">
+          <label for="name">First name</label>
+          <input type="text" id="name" name="name" placeholder="Wilhelm" required autocomplete="given-name" />
+        </div>
+        <div class="field">
+          <label for="email">Email address</label>
+          <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <button type="submit" class="submit-btn">Count me in &rarr;</button>
+      </form>
+
+      <div class="success-msg" id="success">
+        <div class="success-icon">&#10003;</div>
+        <h3>You're on the list!</h3>
+        <p>We'll reach out as soon as WilhelmSifter is ready for you.</p>
+      </div>
+
+      <p class="fine-print">No credit card. No spam. Unsubscribe anytime.</p>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <p class="section-label">What you get</p>
+    <h2>Everything you need to own your finances</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="card-icon">&#128200;</div>
+        <h3>Visual spending breakdown</h3>
+        <p>See exactly where every dollar lands — groceries, subscriptions, dining, and more.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">&#127919;</div>
+        <h3>Goal-based budgeting</h3>
+        <p>Set savings targets and watch your progress update in real time each month.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">&#128276;</div>
+        <h3>Gentle spending alerts</h3>
+        <p>Get a friendly nudge before you overspend a category — not after the damage is done.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">&#128274;</div>
+        <h3>Private by design</h3>
+        <p>Your data never leaves your account. No selling to advertisers. Full stop.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL PROOF -->
+  <section class="proof">
+    <div class="stats-row">
+      <div class="proof-stat">
+        <span class="stat-number">2,400+</span>
+        <span class="stat-label">on the waitlist</span>
+      </div>
+      <div class="proof-stat">
+        <span class="stat-number">$0</span>
+        <span class="stat-label">to get started</span>
+      </div>
+      <div class="proof-stat">
+        <span class="stat-number">100%</span>
+        <span class="stat-label">private &amp; secure</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 WilhelmSifter &mdash; <a href="mailto:hello@wilhelmsifter.org">hello@wilhelmsifter.org</a></p>
+    <p style="margin-top:.5rem;">
+      <a href="#">Privacy Policy</a> &middot; <a href="#">Terms</a>
+    </p>
+  </footer>
+
+  <script>
+    function handleSubmit(e) {
+      e.preventDefault();
+      const form = document.getElementById('signup-form');
+      const success = document.getElementById('success');
+      form.style.display = 'none';
+      success.style.display = 'flex';
+      // TODO: wire up to your email provider (Mailchimp, ConvertKit, etc.)
+    }
+  </script>
+
+</body>
+</html>
