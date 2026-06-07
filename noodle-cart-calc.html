@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Noodle Cart Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0e0a;
+    --bg2: #111611;
+    --bg3: #182018;
+    --border: #2a382a;
+    --accent: #4ade80;
+    --accent2: #86efac;
+    --muted: #4a5e4a;
+    --text: #e8f5e8;
+    --text2: #9ab89a;
+    --danger: #f87171;
+    --warn: #fbbf24;
+    --info: #60a5fa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .header { text-align: center; margin-bottom: 2.5rem; }
+  .header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+  .header p { color: var(--text2); font-size: 13px; margin-top: 0.5rem; }
+
+  .container { max-width: 900px; margin: 0 auto; }
+
+  .section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 1rem;
+  }
+
+  .step-label {
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.05em;
+  }
+
+  .step-desc {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+  }
+
+  textarea {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 0.75rem;
+    resize: vertical;
+    min-height: 160px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0e0a;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 0.75rem 2rem;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 1rem;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-primary:active { transform: scale(0.99); }
+
+  .btn-copy {
+    background: var(--bg3);
+    color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 0.4rem 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    white-space: nowrap;
+  }
+  .btn-copy:hover { border-color: var(--accent); }
+
+  .copy-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .import-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem;
+    font-size: 11px;
+    color: var(--accent2);
+    word-break: break-all;
+    line-height: 1.6;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .results { display: none; }
+  .results.visible { display: block; }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .metric {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+  }
+  .metric-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
+  .metric-value { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+  .metric-value.danger { color: var(--danger); }
+  .metric-value.info { color: var(--info); }
+  .metric-sub { font-size: 11px; color: var(--text2); margin-top: 0.25rem; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); }
+  td { padding: 0.5rem 0.5rem; border-bottom: 1px solid #1a221a; color: var(--text2); }
+  td.name { color: var(--text); }
+  td.win-craft { color: var(--accent); font-weight: 500; }
+  td.win-ah { color: var(--info); font-weight: 500; }
+
+  .verdict { border-radius: 6px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 600; }
+  .verdict.craft { background: #0d2010; border: 1px solid #2d6040; color: var(--accent); }
+  .verdict.buy { background: #0d1520; border: 1px solid #1d4060; color: var(--info); }
+
+  .tag { display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+  .tag-craft { background: #0d2010; color: var(--accent); border: 1px solid #2d6040; }
+  .tag-ah { background: #0d1520; color: var(--info); border: 1px solid #1d4060; }
+
+  .error { background: #200d0d; border: 1px solid #602020; color: var(--danger); border-radius: 6px; padding: 0.75rem 1rem; font-size: 13px; margin-top: 0.75rem; display: none; }
+
+  .how-to {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+  .how-to ol { padding-left: 1.25rem; }
+  .how-to li { margin-bottom: 0.3rem; }
+  .how-to code { color: var(--accent); background: #0d2010; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Noodle Cart Calculator</h1>
+    <p>Pandaren Treasure Noodle Cart Kit — cheapest shopping route for 10 carts</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Step 1 — Get prices from Auctionator</div>
+    <div class="step-desc">Import the shopping list below into Auctionator to scan all required items. Then export the price list as CSV and paste it in Step 2.</div>
+    <div class="copy-row">
+      <div class="import-box" id="scanListBox">Noodle Cart  raw^"Black Pepper";;0;0;0;0;0;0;0;0;;#;;3^"Giant Mantis Shrimp";;0;0;0;0;0;0;0;0;;#;;5^"Mushan Ribs";;0;0;0;0;0;0;0;0;;#;;5^"Green Cabbage";;0;0;0;0;0;0;0;0;;#;;25^"Rice Flour";;0;0;0;0;0;0;0;0;;#;;3^"Redbelly Mandarin";;0;0;0;0;0;0;0;0;;#;;5^"Raw Tiger Steak";;0;0;0;0;0;0;0;0;;#;;5^"Red Blossom Leek";;0;0;0;0;0;0;0;0;;#;;25^"Jewel Danio";;0;0;0;0;0;0;0;0;;#;;5^"Raw Crab Meat";;0;0;0;0;0;0;0;0;;#;;5^"White Turnip";;0;0;0;0;0;0;0;0;;#;;25^"Tiger Gourami";;0;0;0;0;0;0;0;0;;#;;5^"Raw Turtle Meat";;0;0;0;0;0;0;0;0;;#;;5^"Scallions";;0;0;0;0;0;0;0;0;;#;;25^"Pink Turnip";;0;0;0;0;0;0;0;0;;#;;50^"Emperor Salmon";;0;0;0;0;0;0;0;0;;#;;5^"Raw Crocolisk Belly";;0;0;0;0;0;0;0;0;;#;;5^"Mogu Pumpkin";;0;0;0;0;0;0;0;0;;#;;25^"Black Pepper Ribs and Shrimp"^"Chun Tian Spring Rolls"^"Mad Brewer's Breakfast"^"Mogu Fish Stew"^"Sea Mist Rice Noodles"^"Steamed Crab Surprise"^"Pandaren Treasure Noodle Cart Kit"</div>
+      <button class="btn-copy" onclick="copyScanList()">Copy</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Step 2 — Paste price list (CSV)</div>
+    <div class="step-desc">Paste the full CSV export from Auctionator below. Must include raw materials, all 6 buff foods, and the Noodle Cart Kit.</div>
+    <textarea id="csvInput" placeholder='"Price","Name","Item Level","Owned?","Available"
+1359856,"Black Pepper",85,"",581
+209995,"Giant Mantis Shrimp",87,"",471
+...(paste full list including buff foods and noodle cart)'></textarea>
+    <div class="error" id="errorBox"></div>
+    <button class="btn-primary" onclick="calculate()">Calculate cheapest route</button>
+  </div>
+
+  <div class="results" id="results">
+
+    <div class="verdict" id="verdict"></div>
+
+    <div class="metric-grid" id="metricGrid"></div>
+
+    <div class="section">
+      <div class="section-title">Buff food — craft vs AH</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Buff food</th>
+            <th>Craft/ea</th>
+            <th>AH/ea</th>
+            <th>Diff</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody id="buffmatBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Cost breakdown — 10 noodle carts</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Buff food</th>
+            <th>Source</th>
+            <th>×10 units</th>
+          </tr>
+        </thead>
+        <tbody id="costBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Step 3 — Auctionator import string (cheapest route)</div>
+      <div class="step-desc">Import this into Auctionator to buy only what you need at the cheapest price.</div>
+      <div class="copy-row">
+        <div class="import-box" id="importStr"></div>
+        <button class="btn-copy" id="copyBtn" onclick="copyImport()">Copy</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SCAN_LIST = document.getElementById('scanListBox').textContent;
+
+const RECIPES = {
+  "Black Pepper Ribs and Shrimp": {
+    ingredients: {"Black Pepper":1,"Giant Mantis Shrimp":5,"Mushan Ribs":5,"Green Cabbage":25}, yield: 10
+  },
+  "Chun Tian Spring Rolls": {
+    ingredients: {"Rice Flour":1,"Redbelly Mandarin":5,"Raw Tiger Steak":5,"Red Blossom Leek":25}, yield: 10
+  },
+  "Mad Brewer's Breakfast": {
+    ingredients: {"Black Pepper":1,"Pink Turnip":50}, yield: 10
+  },
+  "Mogu Fish Stew": {
+    ingredients: {"Black Pepper":1,"Emperor Salmon":5,"Raw Crocolisk Belly":5,"Mogu Pumpkin":25}, yield: 10
+  },
+  "Sea Mist Rice Noodles": {
+    ingredients: {"Rice Flour":1,"Tiger Gourami":5,"Raw Turtle Meat":5,"Scallions":25}, yield: 10
+  },
+  "Steamed Crab Surprise": {
+    ingredients: {"Rice Flour":1,"Jewel Danio":5,"Raw Crab Meat":5,"White Turnip":25}, yield: 10
+  }
+};
+
+const CART_NAME = "Pandaren Treasure Noodle Cart Kit";
+const AH_CUT = 0.05;
+
+function parseCSV(text) {
+  const prices = {};
+  for (const line of text.trim().split('\n')) {
+    const m = line.match(/^(\d+),"([^"]+)"/);
+    if (m) prices[m[2]] = parseInt(m[1]);
+  }
+  return prices;
+}
+
+function gNum(copper) { return copper / 10000; }
+function gStr(copper) { return gNum(copper).toFixed(2) + 'g'; }
+
+function calculate() {
+  const raw = parseCSV(document.getElementById('csvInput').value);
+  const errBox = document.getElementById('errorBox');
+  errBox.style.display = 'none';
+  const missing = [];
+  const results = {};
+
+  for (const [food, recipe] of Object.entries(RECIPES)) {
+    const missingIngr = Object.keys(recipe.ingredients).filter(i => !(i in raw));
+    if (missingIngr.length) { missing.push(...missingIngr); continue; }
+    if (!(food in raw)) { missing.push(food); continue; }
+    const craftTotal = Object.entries(recipe.ingredients).reduce((s,[k,v]) => s + raw[k]*v, 0);
+    const craftPer = craftTotal / recipe.yield;
+    const ahPer = raw[food];
+    results[food] = { craftPer, ahPer, cheapest: Math.min(craftPer, ahPer), best: craftPer <= ahPer ? 'craft' : 'ah' };
+  }
+
+  if (missing.length) {
+    errBox.textContent = 'Missing prices for: ' + [...new Set(missing)].join(', ');
+    errBox.style.display = 'block';
+    if (!Object.keys(results).length) return;
+  }
+  if (!(CART_NAME in raw)) {
+    errBox.textContent = (errBox.textContent ? errBox.textContent + ' | ' : '') + 'Missing price for: ' + CART_NAME;
+    errBox.style.display = 'block';
+  }
+
+  const ahCartPrice = raw[CART_NAME] || 0;
+  const totalCheapest = Object.values(results).reduce((s,r) => s + r.cheapest * 10, 0);
+  const costPerCart = gNum(totalCheapest) / 10;
+  const ahPerCart = gNum(ahCartPrice);
+  const sellPrice = ahPerCart * (1 - AH_CUT);
+  const profitPerCart = sellPrice - costPerCart;
+
+  // Verdict
+  const verdictEl = document.getElementById('verdict');
+  if (costPerCart < ahPerCart) {
+    verdictEl.className = 'verdict craft';
+    verdictEl.textContent = '🔨 Crafting is cheaper — save ' + (ahPerCart - costPerCart).toFixed(2) + 'g per cart vs buying directly';
+  } else {
+    verdictEl.className = 'verdict buy';
+    verdictEl.textContent = '🏪 Buying on AH is cheaper — ' + (costPerCart - ahPerCart).toFixed(2) + 'g cheaper per cart';
+  }
+
+  // Metrics
+  document.getElementById('metricGrid').innerHTML = `
+    <div class="metric"><div class="metric-label">Total cost (10 carts)</div><div class="metric-value">${gNum(totalCheapest).toFixed(0)}g</div><div class="metric-sub">cheapest mix</div></div>
+    <div class="metric"><div class="metric-label">Cost per cart</div><div class="metric-value">${costPerCart.toFixed(2)}g</div><div class="metric-sub">craft+AH mix</div></div>
+    <div class="metric"><div class="metric-label">AH price per cart</div><div class="metric-value info">${ahPerCart.toFixed(2)}g</div><div class="metric-sub">buy directly</div></div>
+    <div class="metric"><div class="metric-label">Profit per cart</div><div class="metric-value ${profitPerCart >= 0 ? '' : 'danger'}">${profitPerCart >= 0 ? '+' : ''}${profitPerCart.toFixed(2)}g</div><div class="metric-sub">after 5% AH cut</div></div>
+    <div class="metric"><div class="metric-label">Profit 10 carts</div><div class="metric-value ${profitPerCart >= 0 ? '' : 'danger'}">${profitPerCart >= 0 ? '+' : ''}${(profitPerCart*10).toFixed(2)}g</div><div class="metric-sub">after 5% AH cut</div></div>
+  `;
+
+  // Buff food table
+  const buffBody = document.getElementById('buffmatBody');
+  buffBody.innerHTML = '';
+  for (const [food, r] of Object.entries(results)) {
+    const diff = Math.abs(gNum(r.ahPer) - gNum(r.craftPer)).toFixed(2);
+    const wc = r.best === 'craft';
+    buffBody.innerHTML += `<tr>
+      <td class="name">${food}</td>
+      <td class="${wc ? 'win-craft' : ''}" style="color:${wc?'':'var(--text2)'}">${gNum(r.craftPer).toFixed(2)}g</td>
+      <td class="${!wc ? 'win-ah' : ''}" style="color:${!wc?'':'var(--text2)'}">${gNum(r.ahPer).toFixed(2)}g</td>
+      <td style="color:var(--text2)">${wc?'-':'+'}${diff}g</td>
+      <td><span class="tag ${wc?'tag-craft':'tag-ah'}">${wc?'Craft':'AH'}</span></td>
+    </tr>`;
+  }
+
+  // Cost breakdown
+  const costBody = document.getElementById('costBody');
+  costBody.innerHTML = '';
+  for (const [food, r] of Object.entries(results)) {
+    costBody.innerHTML += `<tr>
+      <td class="name">${food}</td>
+      <td><span class="tag ${r.best==='craft'?'tag-craft':'tag-ah'}">${r.best==='craft'?'Craft':'AH'}</span></td>
+      <td class="${r.best==='craft'?'win-craft':'win-ah'}">${gNum(r.cheapest*10).toFixed(2)}g</td>
+    </tr>`;
+  }
+  costBody.innerHTML += `<tr><td class="name" style="font-weight:500">Total</td><td></td><td style="color:var(--accent);font-weight:500">${gNum(totalCheapest).toFixed(2)}g</td></tr>`;
+
+  // Build import string
+  const rawNeeded = {};
+  const ahFoods = [];
+  for (const [food, r] of Object.entries(results)) {
+    if (r.best === 'craft') {
+      for (const [ingr, qty] of Object.entries(RECIPES[food].ingredients)) {
+        rawNeeded[ingr] = (rawNeeded[ingr] || 0) + qty;
+      }
+    } else {
+      ahFoods.push({name: food, qty: 10});
+    }
+  }
+
+  let importStr = 'Noodle Cart cheapest';
+  for (const [name, qty] of Object.entries(rawNeeded)) {
+    importStr += `^"${name}";;0;0;0;0;0;0;0;0;;#;;${qty}`;
+  }
+  for (const {name, qty} of ahFoods) {
+    importStr += `^"${name}";;0;0;0;0;0;0;0;0;;#;;${qty}`;
+  }
+
+  document.getElementById('importStr').textContent = importStr;
+  window._importStr = importStr;
+  document.getElementById('results').classList.add('visible');
+}
+
+function copyScanList() {
+  navigator.clipboard.writeText(SCAN_LIST).then(() => {
+    const btn = document.querySelector('.section:first-of-type .btn-copy');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+
+function copyImport() {
+  if (window._importStr) {
+    navigator.clipboard.writeText(window._importStr).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    });
+  }
+}
+</script>
+</body>
+</html>
