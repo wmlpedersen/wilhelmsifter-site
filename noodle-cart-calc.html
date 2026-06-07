@@ -131,7 +131,7 @@
     <div class="section">
       <div class="section-title">Buff food — craft vs AH</div>
       <table>
-        <thead><tr><th>Buff food</th><th>Craft/ea (full)</th><th>Craft/ea (free BP+RF)</th><th>AH/ea</th><th>Source</th></tr></thead>
+        <thead><tr><th>Buff food</th><th>Craft/ea (full)</th><th>Save (full)</th><th>Craft/ea (free BP+RF)</th><th>Save (free)</th><th>AH/ea</th><th>Source</th></tr></thead>
         <tbody id="buffmatBody"></tbody>
       </table>
     </div>
@@ -191,13 +191,20 @@ function parseCSV(text) {
 
 function gNum(copper) { return copper / 10000; }
 
-function calcResults(raw, freeItems) {
+const FREE_THRESHOLD = 10 * 10000; // 10g in copper
+
+function calcResults(raw, freeItems, useThreshold = false) {
   const results = {};
   for (const [food, recipe] of Object.entries(RECIPES)) {
     const craftTotal = Object.entries(recipe.ingredients).reduce((s,[k,v]) => s + (freeItems.includes(k) ? 0 : (raw[k]||0)*v), 0);
     const craftPer = craftTotal / recipe.yield;
     const ahPer = raw[food] || 0;
-    results[food] = { craftPer, ahPer, cheapest: Math.min(craftPer, ahPer), best: craftPer <= ahPer ? 'craft' : 'ah' };
+    const savings = ahPer - craftPer;
+    // With threshold: only craft if saving >= 10g per unit
+    const best = useThreshold
+      ? (savings >= FREE_THRESHOLD ? 'craft' : 'ah')
+      : (craftPer <= ahPer ? 'craft' : 'ah');
+    results[food] = { craftPer, ahPer, cheapest: best === 'craft' ? craftPer : ahPer, best, savings };
   }
   return results;
 }
@@ -267,8 +274,8 @@ function calculate() {
   }
 
   const ahCartPrice = raw[CART_NAME] || 0;
-  const fullResults = calcResults(raw, []);
-  const freeResults = calcResults(raw, FREE_ITEMS);
+  const fullResults = calcResults(raw, [], false);
+  const freeResults = calcResults(raw, FREE_ITEMS, true);
 
   renderScenario('full', fullResults, ahCartPrice);
   renderScenario('free', freeResults, ahCartPrice);
@@ -279,12 +286,19 @@ function calculate() {
   for (const food of Object.keys(RECIPES)) {
     const f = fullResults[food], r = freeResults[food];
     const wc = f.best === 'craft';
+    const rc = r.best === 'craft';
+    const fullSave = gNum(f.savings);
+    const freeSave = gNum(r.savings);
+    const saveColorFull = fullSave >= 10 ? 'var(--accent)' : fullSave > 0 ? 'var(--text2)' : 'var(--danger)';
+    const saveColorFree = freeSave >= 10 ? 'var(--info)' : freeSave > 0 ? 'var(--text2)' : 'var(--danger)';
     buffBody.innerHTML += `<tr>
       <td class="name">${food}</td>
       <td class="${wc?'win-craft':''}">${gNum(f.craftPer).toFixed(2)}g</td>
+      <td style="color:${saveColorFull}">${fullSave >= 0 ? '+' : ''}${fullSave.toFixed(2)}g</td>
       <td style="color:var(--info)">${gNum(r.craftPer).toFixed(2)}g</td>
+      <td style="color:${saveColorFree}">${freeSave >= 0 ? '+' : ''}${freeSave.toFixed(2)}g</td>
       <td>${gNum(f.ahPer).toFixed(2)}g</td>
-      <td><span class="tag ${wc?'tag-craft':'tag-ah'}">${wc?'Craft':'AH'}</span></td>
+      <td><span class="tag ${rc?'tag-craft':'tag-ah'}">${rc?'Craft':'AH'}</span></td>
     </tr>`;
   }
 
