@@ -30,6 +30,7 @@
   .btn-primary:active { transform: scale(0.99); }
   .btn-copy { background: var(--bg3); color: var(--accent); border: 1px solid var(--border); border-radius: 4px; font-size: 12px; font-family: 'JetBrains Mono', monospace; padding: 0.4rem 1rem; cursor: pointer; transition: border-color 0.2s; white-space: nowrap; }
   .btn-copy:hover { border-color: var(--accent); }
+  .mult-btn.active { border-color: var(--accent); color: var(--accent); background: #0d2010; }
   .copy-row { display: flex; align-items: flex-start; gap: 0.75rem; margin-top: 0.75rem; }
   .import-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem; font-size: 11px; color: var(--accent2); word-break: break-all; line-height: 1.6; flex: 1; min-width: 0; }
   .results { display: none; }
@@ -147,6 +148,17 @@
     <div class="section">
       <div class="section-title">Step 3 — Auctionator import strings</div>
       <div class="step-desc">Two shopping lists: one including Black Pepper &amp; Rice Flour, one without (if you obtain them via tokens).</div>
+
+      <div style="margin-bottom:1rem">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem">Multiplier (×10 carts per step)</div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+          <button class="btn-copy mult-btn" data-mult="1" onclick="setMultiplier(1)">×1 (10 carts)</button>
+          <button class="btn-copy mult-btn" data-mult="2" onclick="setMultiplier(2)">×2 (20 carts)</button>
+          <button class="btn-copy mult-btn" data-mult="3" onclick="setMultiplier(3)">×3 (30 carts)</button>
+          <button class="btn-copy mult-btn" data-mult="5" onclick="setMultiplier(5)">×5 (50 carts)</button>
+          <button class="btn-copy mult-btn" data-mult="10" onclick="setMultiplier(10)">×10 (100 carts)</button>
+        </div>
+      </div>
 
       <div class="import-section-title">With Black Pepper &amp; Rice Flour</div>
       <div class="copy-row">
@@ -324,12 +336,35 @@ function calculate() {
   </tr>`;
 
   // Import strings
-  window._importFull = buildImportString(fullResults, [], 'Noodle Cart full');
-  window._importFree = buildImportString(freeResults, FREE_ITEMS, 'Noodle Cart free BP+RF');
+  window._baseImportFull = buildImportString(fullResults, [], 'Noodle Cart full');
+  window._baseImportFree = buildImportString(freeResults, FREE_ITEMS, 'Noodle Cart free BP+RF');
+  _currentMultiplier = 1;
+  document.querySelectorAll('.mult-btn').forEach(b => b.classList.toggle('active', b.dataset.mult === '1'));
+  window._importFull = window._baseImportFull;
+  window._importFree = window._baseImportFree;
   document.getElementById('importStrFull').textContent = window._importFull;
   document.getElementById('importStrFree').textContent = window._importFree;
 
   document.getElementById('results').classList.add('visible');
+}
+
+let _currentMultiplier = 1;
+
+function setMultiplier(mult) {
+  _currentMultiplier = mult;
+  document.querySelectorAll('.mult-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.mult) === mult);
+  });
+  if (window._baseImportFull) {
+    window._importFull = applyMultiplier(window._baseImportFull, mult);
+    window._importFree = applyMultiplier(window._baseImportFree, mult);
+    document.getElementById('importStrFull').textContent = window._importFull;
+    document.getElementById('importStrFree').textContent = window._importFree;
+  }
+}
+
+function applyMultiplier(importStr, mult) {
+  return importStr.replace(/;;#;;(\d+)/g, (_, qty) => `;;#;;${parseInt(qty) * mult}`);
 }
 
 function copyScanList() {
