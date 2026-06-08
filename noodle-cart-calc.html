@@ -203,8 +203,6 @@ function parseCSV(text) {
 
 function gNum(copper) { return copper / 10000; }
 
-const FREE_THRESHOLD = 10 * 10000; // 10g in copper
-
 function calcResults(raw, freeItems, useThreshold = false) {
   const results = {};
   for (const [food, recipe] of Object.entries(RECIPES)) {
@@ -212,10 +210,15 @@ function calcResults(raw, freeItems, useThreshold = false) {
     const craftPer = craftTotal / recipe.yield;
     const ahPer = raw[food] || 0;
     const savings = ahPer - craftPer;
-    // With threshold: only craft if saving >= 10g per unit
-    const best = useThreshold
-      ? (savings >= FREE_THRESHOLD ? 'craft' : 'ah')
-      : (craftPer <= ahPer ? 'craft' : 'ah');
+    let best;
+    if (useThreshold) {
+      const freeItemCostPerUnit = Object.entries(recipe.ingredients)
+        .filter(([k]) => freeItems.includes(k))
+        .reduce((s,[k,v]) => s + (raw[k]||0)*v, 0) / recipe.yield;
+      best = savings > freeItemCostPerUnit ? 'craft' : 'ah';
+    } else {
+      best = craftPer <= ahPer ? 'craft' : 'ah';
+    }
     results[food] = { craftPer, ahPer, cheapest: best === 'craft' ? craftPer : ahPer, best, savings };
   }
   return results;
