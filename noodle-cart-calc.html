@@ -92,7 +92,34 @@
 1359856,"Black Pepper",85,"",581
 ...(paste full list including buff foods and noodle cart)'></textarea>
     <div class="error" id="errorBox"></div>
-    <button class="btn-primary" onclick="calculate()">Calculate cheapest route</button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Step 2b — Owned materials <span style="color:var(--muted);font-weight:400;font-size:10px;margin-left:0.5rem">OPTIONAL</span></div>
+    <div class="step-desc">Enter materials you already have. These will be subtracted from the shopping list. Black Pepper and Rice Flour are handled separately via the token threshold.</div>
+    <div id="ownedGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.5rem;margin-bottom:0.75rem">
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Giant Mantis Shrimp</span><input type="number" min="0" id="own-Giant Mantis Shrimp" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Mushan Ribs</span><input type="number" min="0" id="own-Mushan Ribs" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Green Cabbage</span><input type="number" min="0" id="own-Green Cabbage" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Redbelly Mandarin</span><input type="number" min="0" id="own-Redbelly Mandarin" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Raw Tiger Steak</span><input type="number" min="0" id="own-Raw Tiger Steak" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Red Blossom Leek</span><input type="number" min="0" id="own-Red Blossom Leek" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Pink Turnip</span><input type="number" min="0" id="own-Pink Turnip" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Emperor Salmon</span><input type="number" min="0" id="own-Emperor Salmon" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Raw Crocolisk Belly</span><input type="number" min="0" id="own-Raw Crocolisk Belly" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Mogu Pumpkin</span><input type="number" min="0" id="own-Mogu Pumpkin" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Tiger Gourami</span><input type="number" min="0" id="own-Tiger Gourami" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Raw Turtle Meat</span><input type="number" min="0" id="own-Raw Turtle Meat" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Scallions</span><input type="number" min="0" id="own-Scallions" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Jewel Danio</span><input type="number" min="0" id="own-Jewel Danio" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">Raw Crab Meat</span><input type="number" min="0" id="own-Raw Crab Meat" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+      <div style="display:flex;align-items:center;gap:0.4rem;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem"><span style="font-size:11px;color:var(--text2);flex:1">White Turnip</span><input type="number" min="0" id="own-White Turnip" placeholder="0" style="width:50px;background:transparent;border:none;color:var(--accent);font-family:JetBrains Mono,monospace;font-size:12px;text-align:right;outline:none"></div>
+    </div>
+    <button class="btn-copy" onclick="resetOwned()" style="font-size:11px">Reset all</button>
+  </div>
+
+  <div class="section" style="padding:1rem 1.5rem">
+    <button class="btn-primary" style="margin-top:0" onclick="calculate()">Calculate cheapest route</button>
   </div>
 
   <div class="results" id="results">
@@ -241,7 +268,25 @@ function calcResults(raw, freeItems, useThreshold = false) {
   return results;
 }
 
-function buildImportString(results, freeItems, label) {
+function getOwned() {
+  const owned = {};
+  const allIngr = new Set(Object.values(RECIPES).flatMap(r => Object.keys(r.ingredients)).filter(i => !FREE_ITEMS.includes(i)));
+  for (const ingr of allIngr) {
+    const el = document.getElementById('own-' + ingr);
+    if (el && el.value) owned[ingr] = parseInt(el.value) || 0;
+  }
+  return owned;
+}
+
+function resetOwned() {
+  const allIngr = new Set(Object.values(RECIPES).flatMap(r => Object.keys(r.ingredients)).filter(i => !FREE_ITEMS.includes(i)));
+  for (const ingr of allIngr) {
+    const el = document.getElementById('own-' + ingr);
+    if (el) el.value = '';
+  }
+}
+
+function buildImportString(results, freeItems, label, owned = {}) {
   const rawNeeded = {};
   const ahFoods = [];
   for (const [food, r] of Object.entries(results)) {
@@ -253,8 +298,16 @@ function buildImportString(results, freeItems, label) {
       ahFoods.push({ name: food, qty: 10 });
     }
   }
+  // Subtract owned
+  for (const [ingr, have] of Object.entries(owned)) {
+    if (rawNeeded[ingr]) {
+      rawNeeded[ingr] = Math.max(0, rawNeeded[ingr] - have);
+    }
+  }
   let str = label;
-  for (const [name, qty] of Object.entries(rawNeeded)) str += `^"${name}";;0;0;0;0;0;0;0;0;;#;;${qty}`;
+  for (const [name, qty] of Object.entries(rawNeeded)) {
+    if (qty > 0) str += `^"${name}";;0;0;0;0;0;0;0;0;;#;;${qty}`;
+  }
   for (const { name, qty } of ahFoods) str += `^"${name}";;0;0;0;0;0;0;0;0;;#;;${qty}`;
   return str;
 }
@@ -370,8 +423,9 @@ function calculate() {
   </tr>`;
 
   // Import strings
-  window._baseImportFull = buildImportString(fullResults, [], 'Noodle Cart full');
-  window._baseImportFree = buildImportString(freeResults, FREE_ITEMS, 'Noodle Cart free BP+RF');
+  const owned = getOwned();
+  window._baseImportFull = buildImportString(fullResults, [], 'Noodle Cart full', owned);
+  window._baseImportFree = buildImportString(freeResults, FREE_ITEMS, 'Noodle Cart free BP+RF', owned);
   _currentMultiplier = 1;
   document.querySelectorAll('.mult-btn').forEach(b => b.classList.toggle('active', b.dataset.mult === '1'));
   window._importFull = window._baseImportFull;
