@@ -129,6 +129,23 @@
       </div>
     </div>
 
+
+    <div class="section" style="margin-bottom:1.5rem">
+      <div class="section-title">🎁 Free cart threshold</div>
+      <div class="step-desc" style="margin-bottom:1rem">How many carts do you need to craft to earn one free cart? Based on profit vs AH price (rounded up).</div>
+      <div class="metric-row">
+        <div class="metric">
+          <div class="metric-label">Full — carts for 1 free</div>
+          <div class="metric-value" id="full-free-cart"></div>
+          <div class="metric-sub" id="full-free-cart-sub"></div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Free BP+RF — carts for 1 free</div>
+          <div class="metric-value info" id="free-free-cart"></div>
+          <div class="metric-sub" id="free-free-cart-sub"></div>
+        </div>
+      </div>
+    </div>
     <div class="section">
       <div class="section-title">Buff food — craft vs AH</div>
       <table>
@@ -268,6 +285,19 @@ function renderScenario(prefix, results, ahCartPrice) {
   const pt = document.getElementById(`${prefix}-profit-total`);
   pt.textContent = (profitPerCart >= 0 ? '+' : '') + (profitPerCart * 10).toFixed(2) + 'g';
   pt.className = 'metric-value ' + (profitPerCart >= 0 ? 'gold' : 'danger');
+
+  const fcEl = document.getElementById(`${prefix}-free-cart`);
+  const fcSub = document.getElementById(`${prefix}-free-cart-sub`);
+  if (profitPerCart > 0) {
+    const cartsNeeded = Math.ceil(ahPerCart / profitPerCart);
+    fcEl.textContent = cartsNeeded + ' carts';
+    fcEl.className = 'metric-value ' + (prefix === 'free' ? 'info' : '');
+    fcSub.textContent = ahPerCart.toFixed(2) + 'g ÷ ' + profitPerCart.toFixed(2) + 'g profit';
+  } else {
+    fcEl.textContent = 'N/A';
+    fcEl.className = 'metric-value danger';
+    fcSub.textContent = 'No profit — not worth crafting';
+  }
 }
 
 function calculate() {
