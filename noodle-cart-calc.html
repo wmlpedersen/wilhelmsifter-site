@@ -132,7 +132,7 @@
     <div class="section">
       <div class="section-title">Buff food — craft vs AH</div>
       <table>
-        <thead><tr><th>Buff food</th><th>Craft/ea (full)</th><th>Save (full)</th><th>Craft/ea (free BP+RF)</th><th>Save (free)</th><th>AH/ea</th><th>Source</th></tr></thead>
+        <thead><tr><th>Buff food</th><th>Craft/ea (full)</th><th>Save (full)</th><th>Source (full)</th><th>Craft/ea (free BP+RF)</th><th>Save (free)</th><th>Source (free)</th><th>AH/ea</th></tr></thead>
         <tbody id="buffmatBody"></tbody>
       </table>
     </div>
@@ -310,10 +310,11 @@ function calculate() {
       <td class="name">${food}</td>
       <td class="${wc?'win-craft':''}">${gNum(f.craftPer).toFixed(2)}g</td>
       <td style="color:${saveColorFull}">${fullSave >= 0 ? '+' : ''}${fullSave.toFixed(2)}g</td>
+      <td><span class="tag ${wc?'tag-craft':'tag-ah'}">${wc?'Craft':'AH'}</span></td>
       <td style="color:var(--info)">${gNum(r.craftPer).toFixed(2)}g</td>
       <td style="color:${saveColorFree}">${freeSave >= 0 ? '+' : ''}${freeSave.toFixed(2)}g</td>
-      <td>${gNum(f.ahPer).toFixed(2)}g</td>
       <td><span class="tag ${rc?'tag-craft':'tag-ah'}">${rc?'Craft':'AH'}</span></td>
+      <td>${gNum(f.ahPer).toFixed(2)}g</td>
     </tr>`;
   }
 
