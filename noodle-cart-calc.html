@@ -286,7 +286,7 @@ function resetOwned() {
   }
 }
 
-function buildImportString(results, freeItems, label, owned = {}) {
+function buildShoppingData(results, freeItems) {
   const rawNeeded = {};
   const ahFoods = [];
   for (const [food, r] of Object.entries(results)) {
@@ -298,17 +298,20 @@ function buildImportString(results, freeItems, label, owned = {}) {
       ahFoods.push({ name: food, qty: 10 });
     }
   }
-  // Subtract owned
-  for (const [ingr, have] of Object.entries(owned)) {
-    if (rawNeeded[ingr]) {
-      rawNeeded[ingr] = Math.max(0, rawNeeded[ingr] - have);
-    }
-  }
+  return { rawNeeded, ahFoods };
+}
+
+function buildImportString(data, label, owned, mult) {
   let str = label;
-  for (const [name, qty] of Object.entries(rawNeeded)) {
-    if (qty > 0) str += `^"${name}";;0;0;0;0;0;0;0;0;;#;;${qty}`;
+  for (const [name, qty] of Object.entries(data.rawNeeded)) {
+    const scaled = qty * mult;
+    const have = (owned[name] || 0) * mult;
+    const final = Math.max(0, scaled - have);
+    if (final > 0) str += `^"${name}";;0;0;0;0;0;0;0;0;;#;;${final}`;
   }
-  for (const { name, qty } of ahFoods) str += `^"${name}";;0;0;0;0;0;0;0;0;;#;;${qty}`;
+  for (const { name, qty } of data.ahFoods) {
+    str += `^"${name}";;0;0;0;0;0;0;0;0;;#;;${qty * mult}`;
+  }
   return str;
 }
 
@@ -424,12 +427,12 @@ function calculate() {
 
   // Import strings
   const owned = getOwned();
-  window._baseImportFull = buildImportString(fullResults, [], 'Noodle Cart full', owned);
-  window._baseImportFree = buildImportString(freeResults, FREE_ITEMS, 'Noodle Cart free BP+RF', owned);
+  window._shoppingDataFull = buildShoppingData(fullResults, []);
+  window._shoppingDataFree = buildShoppingData(freeResults, FREE_ITEMS);
   _currentMultiplier = 1;
   document.querySelectorAll('.mult-btn').forEach(b => b.classList.toggle('active', b.dataset.mult === '1'));
-  window._importFull = window._baseImportFull;
-  window._importFree = window._baseImportFree;
+  window._importFull = buildImportString(window._shoppingDataFull, 'Noodle Cart full', owned, 1);
+  window._importFree = buildImportString(window._shoppingDataFree, 'Noodle Cart free BP+RF', owned, 1);
   document.getElementById('importStrFull').textContent = window._importFull;
   document.getElementById('importStrFree').textContent = window._importFree;
 
@@ -443,16 +446,13 @@ function setMultiplier(mult) {
   document.querySelectorAll('.mult-btn').forEach(b => {
     b.classList.toggle('active', parseInt(b.dataset.mult) === mult);
   });
-  if (window._baseImportFull) {
-    window._importFull = applyMultiplier(window._baseImportFull, mult);
-    window._importFree = applyMultiplier(window._baseImportFree, mult);
+  if (window._shoppingDataFull) {
+    const owned = getOwned();
+    window._importFull = buildImportString(window._shoppingDataFull, 'Noodle Cart full', owned, mult);
+    window._importFree = buildImportString(window._shoppingDataFree, 'Noodle Cart free BP+RF', owned, mult);
     document.getElementById('importStrFull').textContent = window._importFull;
     document.getElementById('importStrFree').textContent = window._importFree;
   }
-}
-
-function applyMultiplier(importStr, mult) {
-  return importStr.replace(/;;#;;(\d+)/g, (_, qty) => `;;#;;${parseInt(qty) * mult}`);
 }
 
 function copyScanList() {
