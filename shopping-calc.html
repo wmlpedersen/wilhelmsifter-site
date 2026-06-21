@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shopping Cart Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;800&family=Oxanium:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0e0a; --bg2: #111611; --bg3: #182018;
+    --border: #2a382a; --accent: #4ade80; --accent2: #86efac;
+    --muted: #4a5e4a; --text: #e8f5e8; --text2: #9ab89a;
+    --danger: #f87171; --warn: #fbbf24; --info: #60a5fa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 14px; min-height: 100vh; padding: 2rem 1rem; }
+  .header { text-align: center; margin-bottom: 2.5rem; }
+  .header h1 { font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; }
+  .header p { color: var(--text2); font-size: 13px; margin-top: 0.5rem; }
+  .container { max-width: 900px; margin: 0 auto; }
+  .section { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  .section-title { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+  .step-desc { font-size: 12px; color: var(--text2); margin-bottom: 0.75rem; line-height: 1.5; }
+  textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 0.75rem; resize: vertical; min-height: 120px; outline: none; transition: border-color 0.2s; }
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); }
+  .btn-primary { background: var(--accent); color: #0a0e0a; border: none; border-radius: 6px; font-family: 'Syne', sans-serif; font-weight: 600; font-size: 14px; padding: 0.75rem 2rem; cursor: pointer; width: 100%; margin-top: 1rem; transition: background 0.2s; }
+  .btn-primary:hover { background: var(--accent2); }
+  .error { background: #200d0d; border: 1px solid #602020; color: var(--danger); border-radius: 6px; padding: 0.75rem 1rem; font-size: 13px; margin-top: 0.75rem; display: none; }
+  .warn-box { background: #1a1500; border: 1px solid #604020; color: var(--warn); border-radius: 6px; padding: 0.75rem 1rem; font-size: 12px; margin-bottom: 1rem; display: none; line-height: 1.6; }
+  .results { display: none; }
+  .results.visible { display: block; }
+  .total-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; text-align: center; margin-bottom: 1.5rem; }
+  .total-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+  .total-value { font-family: 'Oxanium', sans-serif; font-size: 3rem; font-weight: 800; color: var(--accent); }
+  .total-sub { font-size: 12px; color: var(--text2); margin-top: 0.4rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); }
+  td { padding: 0.5rem 0.5rem; border-bottom: 1px solid #1a221a; color: var(--text2); }
+  td.name { color: var(--text); }
+  td.cost { color: var(--accent); }
+  td.warn { color: var(--warn); }
+  .back-link { display: inline-block; color: var(--muted); font-size: 12px; text-decoration: none; margin-bottom: 1.5rem; transition: color 0.2s; }
+  .back-link:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="/" class="back-link">← Back to Sifter's Toolkit</a>
+  <div class="header">
+    <h1>Shopping Cart Calculator</h1>
+    <p>Paste your Auctionator shopping list and price CSV to get the total cost</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Step 1 — Paste your shopping list</div>
+    <div class="step-desc">Paste your Auctionator import string (e.g. Engineering^Clockwork Box^"Rough Stone";;...)</div>
+    <textarea id="shoppingList" placeholder='Engineering^Clockwork Box^"Rough Stone";;0;0;0;0;0;0;0;0;;#;;50^"Copper Bar";;0;0;0;0;0;0;0;0;;#;;36^...'></textarea>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Step 2 — Paste price list (CSV)</div>
+    <div class="step-desc">Paste the Auctionator CSV export with prices for all items in your shopping list.</div>
+    <textarea id="csvInput" placeholder='"Price","Name","Item Level","Owned?","Available"
+78,"Rough Stone",5,"",3777
+6700,"Copper Bar",10,"",4014
+...'></textarea>
+    <div class="error" id="errorBox"></div>
+    <button class="btn-primary" onclick="calculate()">Calculate total</button>
+  </div>
+
+  <div class="results" id="results">
+
+    <div class="total-box">
+      <div class="total-label">Total cost</div>
+      <div class="total-value" id="totalValue"></div>
+      <div class="total-sub" id="totalSub"></div>
+    </div>
+
+    <div class="warn-box" id="warnBox"></div>
+
+    <div class="section">
+      <div class="section-title">Breakdown</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Price/ea</th>
+            <th>Qty needed</th>
+            <th>Available</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="breakdown"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function parseCSV(text) {
+  const prices = {}, available = {};
+  for (const line of text.trim().split('\n')) {
+    const m = line.match(/^(\d+),"([^"]+)"[^,]*,[^,]*,(\d+)/);
+    if (m) {
+      prices[m[2]] = parseInt(m[1]);
+      available[m[2]] = parseInt(m[3]);
+      prices[m[2].toLowerCase()] = parseInt(m[1]);
+      available[m[2].toLowerCase()] = parseInt(m[3]);
+    }
+  }
+  return { prices, available };
+}
+
+function parseShoppingList(text) {
+  const items = [];
+  const parts = text.trim().split('^');
+  for (const part of parts) {
+    const m = part.match(/"([^"]+)";;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;[^;]*;;#;;(\d+)/);
+    if (m) items.push({ name: m[1], qty: parseInt(m[2]) });
+  }
+  return items;
+}
+
+function gNum(copper) { return copper / 10000; }
+
+function calculate() {
+  const listText = document.getElementById('shoppingList').value.trim();
+  const csvText = document.getElementById('csvInput').value.trim();
+  const errBox = document.getElementById('errorBox');
+  errBox.style.display = 'none';
+
+  if (!listText || !csvText) {
+    errBox.textContent = 'Please fill in both fields.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  const items = parseShoppingList(listText);
+  if (!items.length) {
+    errBox.textContent = 'Could not parse shopping list. Make sure it is in Auctionator format.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  const { prices, available } = parseCSV(csvText);
+
+  const missing = [];
+  const warnings = [];
+  let total = 0;
+  const rows = [];
+
+  for (const { name, qty } of items) {
+    const price = prices[name] ?? prices[name.toLowerCase()];
+    const avail = available[name] ?? available[name.toLowerCase()];
+
+    if (price === undefined) {
+      missing.push(name);
+      continue;
+    }
+
+    const lineCost = price * qty;
+    total += lineCost;
+
+    const availLow = avail !== undefined && avail < qty;
+    if (availLow) warnings.push(`${name}: need ${qty}, only ${avail} available`);
+
+    rows.push({ name, price, qty, avail, lineCost, availLow });
+  }
+
+  if (missing.length) {
+    errBox.textContent = 'Missing prices for: ' + missing.join(', ');
+    errBox.style.display = 'block';
+    if (!rows.length) return;
+  }
+
+  document.getElementById('totalValue').textContent = gNum(total).toFixed(2) + 'g';
+  document.getElementById('totalSub').textContent =
+    rows.length + ' items · ' + rows.reduce((s,r) => s + r.qty, 0) + ' units total';
+
+  const warnBox = document.getElementById('warnBox');
+  if (warnings.length) {
+    warnBox.style.display = 'block';
+    warnBox.innerHTML = '⚠️ Stock warnings:<br>' + warnings.map(w => '&nbsp;&nbsp;' + w).join('<br>');
+  } else {
+    warnBox.style.display = 'none';
+  }
+
+  const tbody = document.getElementById('breakdown');
+  tbody.innerHTML = '';
+  for (const { name, price, qty, avail, lineCost, availLow } of rows.sort((a,b) => b.lineCost - a.lineCost)) {
+    tbody.innerHTML += `<tr>
+      <td class="name">${name}</td>
+      <td>${gNum(price).toFixed(2)}g</td>
+      <td>${qty}</td>
+      <td class="${availLow ? 'warn' : ''}">${avail !== undefined ? avail : '—'}</td>
+      <td class="cost">${gNum(lineCost).toFixed(2)}g</td>
+    </tr>`;
+  }
+  tbody.innerHTML += `<tr>
+    <td class="name" style="font-weight:500">Total</td>
+    <td></td><td></td><td></td>
+    <td class="cost" style="font-weight:500">${gNum(total).toFixed(2)}g</td>
+  </tr>`;
+
+  document.getElementById('results').classList.add('visible');
+}
+</script>
+</body>
+</html>
