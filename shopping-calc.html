@@ -103,7 +103,7 @@
 function parseCSV(text) {
   const prices = {}, available = {};
   for (const line of text.trim().split('\n')) {
-    const m = line.match(/^(\d+),"([^"]+)"[^,]*,[^,]*,(\d+)/);
+    const m = line.match(/^(\d+),"([^"]+)",\d+,"",(\d+)/);
     if (m) {
       prices[m[2]] = parseInt(m[1]);
       available[m[2]] = parseInt(m[3]);
