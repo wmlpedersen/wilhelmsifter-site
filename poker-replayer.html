@@ -208,7 +208,7 @@ function parseCards(str){ return String(str||'').split(/[\s,]+/).map(parseCard).
 
 function parse(text){
   const L=text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-  const h={c:'€',sb:0,bb:0,g:"Hold'em",p:[],hero:-1,hc:[],a:[],bd:[[],[],[]],sh:[],w:[],co:[],tp:null,rk:null,an:0};
+  const h={c:'',sb:0,bb:0,g:"Hold'em",p:[],hero:-1,hc:[],a:[],bd:[[],[],[]],sh:[],w:[],co:[],tp:null,rk:null,an:0};
   let sec=-1; // -1 before hole cards, 0..3 streets, 9 summary
   const idx=n=>h.p.findIndex(p=>p.n===n);
   for(const l of L){
@@ -217,7 +217,8 @@ function parse(text){
       h.g=((m[2]||'')+' '+m[1].replace(/^Texas\s+/i,'')).trim(); h.c=m[3]; h.sb=num(m[4]); h.bb=num(m[5]); continue;
     }
     if(!h.bb && (m=l.match(/Blinds:\s*[€$£]?([\d.,]+)\s*\/\s*[€$£]?([\d.,]+)/i))){ h.sb=num(m[1]); h.bb=num(m[2]); }
-    if(sec<0 && (m=l.match(/^Seat\s+(\d+):\s+(.+?)\s+\(\s*[€$£]?\s*([\d.,]+)\s+in chips\)(.*)$/i))){
+    if(sec<0 && (m=l.match(/^Seat\s+(\d+):\s+(.+?)\s+\(\s*([€$£]?)\s*([\d.,]+)\s+in chips\)(.*)$/i))){
+      if(m[3]&&!h.c) h.c=m[3]; m=[m[0],m[1],m[2],m[4],m[5]];
       h.p.push({n:m[2],st:num(m[3]),d:/DEALER|button/i.test(m[4])}); continue;
     }
     if(/^\*\*\*\s*HOLE CARDS/i.test(l)){ sec=0; continue; }
@@ -296,8 +297,10 @@ function build(h){
   let pot=0,cur=0; const board=[],steps=[];
   const snap=(t,o={})=>steps.push({t,actor:o.actor??-1,street:cur,kind:o.kind||'act',pot:r2(pot),board:[...board],P:P.map(q=>({...q})),res:o.res||null});
   const put=(q,x)=>{ x=Math.max(0,Math.min(x,q.st)); q.st=r2(q.st-x); q.bet=r2(q.bet+x); q.tot=r2(q.tot+x); if(q.st<=0.004){q.st=0;q.ai=true;} return x; };
-  for(const a of h.a.filter(a=>a.t==='post')){ const q=P[a.p]; put(q,a.x); q.act={k:a.k||'Post',x:q.bet,c:'pass'}; }
-  snap(()=>'Blinds er lagt',{kind:'start'});
+  for(const a of h.a.filter(a=>a.t==='post')){ const q=P[a.p];
+    if(/ANTE|DEAD/i.test(a.k||'')){ const x=Math.min(a.x,q.st); q.st=r2(q.st-x); q.tot=r2(q.tot+x); pot=r2(pot+x); if(q.st<=0.004){q.st=0;q.ai=true;} continue; }
+    put(q,a.x); q.act={k:a.k||'Post',x:q.bet,c:'pass'}; }
+  snap(()=>pot>0?`Blinds er lagt, ante ${M(pot)} i potten`:'Blinds er lagt',{kind:'start'});
   const collect=()=>{ pot=r2(pot+P.reduce((t,q)=>t+q.bet,0)); P.forEach(q=>{q.bet=0; if(!q.f) q.act=null;}); };
   const deal=s=>{ collect(); const c=h.bd[s-1]||[]; board.push(...c); cur=s; snap(()=>STREET[s]+(c.length?': '+c.map(cardTxt).join(' '):''),{kind:'street'}); };
   const acts=h.a.filter(a=>a.t!=='post');
@@ -328,7 +331,7 @@ function build(h){
   pot=0;
   const res={w:h.w,co:h.co,rk:h.rk,total};
   snap(()=>[...h.w.map(w=>`${N(w.p)} vinner ${M(w.x)}`),...h.co.map(c=>`${N(c.p)} cashet ut ${M(c.x)}`)].join(' · ')||'Ferdig',{kind:'result',res});
-  const warn=(h.tp!=null && Math.abs(h.tp-total)>0.02)?`Beregnet pott (${h.c}${total.toFixed(2)}) avviker fra historikken (${h.c}${h.tp.toFixed(2)}).`:'';
+  const warn=(h.tp!=null && Math.abs(h.tp-total)>0.02)?`Beregnet pott (${total}) avviker fra historikken (${h.tp}).`:'';
   return {steps,warn};
 }
 
@@ -337,7 +340,9 @@ let H=null, S=[], i=0, timer=null, pos=[];
 const $=id=>document.getElementById(id);
 const opt={anon:true,bb:false};
 function N(j){ if(!H) return ''; if(opt.anon && !H.an) return j===H.hero?'Hero':pos[j]; return H.p[j].n; }
-function M(x){ if(opt.bb && H && H.bb) return (Math.round(x/H.bb*10)/10).toString()+' BB'; return (H?H.c:'€')+Number(x).toFixed(2); }
+function isChips(){ return !!H && (!H.c || (H.bb>=1000 && Number.isInteger(H.bb) && Number.isInteger(H.sb))); }
+function fmt(x){ return isChips() ? Math.round(x).toLocaleString('nb-NO') : (H?H.c:'€')+Number(x).toFixed(2); }
+function M(x){ if(opt.bb && H && H.bb) return (Math.round(x/H.bb*10)/10).toString()+' BB'; return fmt(x); }
 function cardTxt(c){ return c[0].replace('T','10')+SUIT[c[1]]; }
 function cardEl(c,cls=''){ const e=document.createElement('div');
   if(!c){ e.className='card '+(cls||'back'); return e; }
@@ -407,7 +412,7 @@ function renderLog(){
     li.onclick=()=>go(k); li.onkeydown=e=>{ if(e.key==='Enter') go(k); }; lg.appendChild(li); last=st.street;
   });
 }
-function meta(){ $('meta').textContent=`${H.g} · ${H.c}${H.sb.toFixed(2)}/${H.c}${H.bb.toFixed(2)} · ${H.p.length} spillere`; }
+function meta(){ $('meta').textContent=`${H.g} · ${fmt(H.sb)}/${fmt(H.bb)} · ${H.p.length} spillere`; }
 function load(h){
   H=h; pos=positions(h); const r=build(h); S=r.steps; i=0; stop();
   $('warn').textContent=r.warn; $('scrub').max=S.length-1;
