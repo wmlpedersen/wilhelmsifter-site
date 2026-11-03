@@ -174,7 +174,7 @@ label.chk input{accent-color:var(--accent);width:16px;height:16px}
 </div>
 
 <script>
-const ARTIFACT_URL = location.origin + location.pathname;
+const ARTIFACT_URL = location.origin + location.pathname.replace(/\.html$/,'');
 const SUIT = {s:'♠',h:'♥',d:'♦',c:'♣'};
 const STREET = ['Preflop','Flop','Turn','River'];
 
@@ -261,13 +261,59 @@ function unpack(o){
     a:o.a.map(x=>({s:x[0],p:x[1],t:x[2],x:x[3],k:x[4]})),bd:o.bd.map(split2),sh:o.sh.map(x=>({p:x[0],cards:split2(x[1]),desc:x[2]})),
     w:o.w.map(x=>({p:x[0],x:x[1]})),co:o.co.map(x=>({p:x[0],x:x[1]})),tp:o.tp,rk:o.rk,an:o.an};
 }
-async function encode(h,anon){
-  const raw=new TextEncoder().encode(JSON.stringify(pack(h,anon)));
-  if(typeof CompressionStream!=='undefined'){ try{ return 'z'+b32(await pipe(raw,new CompressionStream('deflate-raw'))); }catch(e){} }
-  return 'j'+b32(raw);
+/* ---- compact v2 share format: binary + base62, prefix '1' ---- */
+const B62='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+const RK='23456789TJQKA', SU='shdc', CUR=['','€','$','£'], ATY=['post','f','k','c','b','r','a'],
+  PK=['','SB','BB','ANTE','STRADDLE','DEAD','SMALL BLIND','BIG BLIND'];
+const DICT=[' ',',','-','.','(',')',"Hold'em",'NL','PL','FL','Omaha','Texas','One','Two','Pair','Pairs','High','Card','Three','of','a','Kind',
+  'Straight','Flush','Full','House','Four','Royal','and','over','full','Ace','King','Queen','Jack','Ten','Nine','Eight','Seven','Six','Five',
+  'Aces','Kings','Queens','Jacks','Tens','Nines','Eights','Sevens','Sixes','Fives','Fours','Threes','Twos','Deuces','Deuce','with','kicker','Low','to','Hi','Lo','Hold','em',"'"];
+function toB62(bytes){ let n=BigInt('0x01'+[...bytes].map(b=>b.toString(16).padStart(2,'0')).join('')), o=''; while(n>0n){ o=B62[Number(n%62n)]+o; n/=62n; } return o; }
+function fromB62(str){ let n=0n; for(const ch of str){ const x=B62.indexOf(ch); if(x<0) throw new Error('Ugyldig kode'); n=n*62n+BigInt(x); }
+  const hx=n.toString(16); if(hx[0]!=='1'||hx.length%2!==1) throw new Error('Ugyldig kode'); const o=[]; for(let k=1;k<hx.length;k+=2) o.push(parseInt(hx.slice(k,k+2),16)); return new Uint8Array(o); }
+function encode2(h,anon){
+  const o=[], u8=x=>o.push(x&255), vu=x=>{ x=Math.max(0,Math.round(x)); while(x>=128){ o.push((x%128)|128); x=Math.floor(x/128); } o.push(x); };
+  const enc=new TextEncoder(), str=t=>{ const b=enc.encode(t); vu(b.length); o.push(...b); };
+  const cd=c=>u8(RK.indexOf(c[0])*4+SU.indexOf(c[1])), cards=a=>{ u8(a.length); a.forEach(cd); };
+  const tok=t=>{ const ts=String(t||'').match(/[A-Za-z]+|[^A-Za-z]/g)||[]; vu(ts.length); ts.forEach(w=>{ const k=DICT.indexOf(w); if(k>=0) u8(k+1); else { u8(0); str(w); } }); };
+  const all=[h.sb,h.bb,...h.p.map(p=>p.st),...h.a.map(a=>a.x||0),...h.w.map(w=>w.x),...h.co.map(c=>c.x),h.tp||0,h.rk||0];
+  const unit=all.every(x=>Math.abs(x-Math.round(x))<1e-9)?1:100, amt=x=>vu(x*unit);
+  u8(2); u8((anon?1:0)|(unit===100?2:0)|(Math.max(0,CUR.indexOf(h.c))<<2)); tok(h.g); amt(h.sb); amt(h.bb);
+  const di=h.p.findIndex(p=>p.d); u8(h.p.length); u8(di<0?255:di); u8(h.hero<0?255:h.hero);
+  h.p.forEach(p=>{ if(!anon) str(p.n); amt(p.st); }); cards(h.hc||[]);
+  vu(h.a.length); h.a.forEach(a=>{ const ty=ATY.indexOf(a.t); u8(ty*4+a.s); const k=a.t==='post'?Math.max(0,PK.indexOf(String(a.k||'').toUpperCase())):0; u8(a.p|(k<<4)); if(a.t!=='f'&&a.t!=='k') amt(a.x||0); });
+  for(let k=0;k<3;k++) cards(h.bd[k]||[]);
+  u8(h.sh.length); h.sh.forEach(x=>{ u8(x.p); cards(x.cards); tok(x.desc); });
+  u8(h.w.length); h.w.forEach(x=>{ u8(x.p); amt(x.x); }); u8(h.co.length); h.co.forEach(x=>{ u8(x.p); amt(x.x); });
+  vu(h.tp==null?0:h.tp*unit+1); vu(h.rk==null?0:h.rk*unit+1);
+  return '1'+toB62(o);
 }
+function decode2(code){
+  const b=fromB62(code); let q=0; const dec=new TextDecoder();
+  const u8=()=>{ if(q>=b.length) throw new Error('Ugyldig kode'); return b[q++]; }, vu=()=>{ let x=0,m=1,c; do{ c=u8(); x+=(c&127)*m; m*=128; }while(c&128); return x; };
+  const str=()=>{ const n=vu(); const t=dec.decode(b.slice(q,q+n)); q+=n; return t; };
+  const cd=()=>{ const v=u8(); return RK[v>>2]+SU[v&3]; }, cards=()=>{ const n=u8(); return Array.from({length:n},cd); };
+  const tok=()=>{ const n=vu(); let t=''; for(let k=0;k<n;k++){ const x=u8(); t+=x?DICT[x-1]:str(); } return t; };
+  if(u8()!==2) throw new Error('Ugyldig kode');
+  const fl=u8(), anon=!!(fl&1), unit=fl&2?100:1, amt=()=>vu()/unit;
+  const h={c:CUR[(fl>>2)&3],g:tok(),sb:0,bb:0,p:[],hero:-1,hc:[],a:[],bd:[],sh:[],w:[],co:[],tp:null,rk:null,an:anon?1:0};
+  h.sb=amt(); h.bb=amt(); const n=u8(), di=u8(), hero=u8(); h.hero=hero===255?-1:hero;
+  for(let k=0;k<n;k++) h.p.push({n:anon?'':str(),st:amt(),d:k===di});
+  h.hc=cards();
+  const na=vu(); for(let k=0;k<na;k++){ const x=u8(), y=u8(), t=ATY[x>>2]; const a={s:x&3,p:y&15,t,x:0,k:t==='post'?PK[y>>4]:''}; if(t!=='f'&&t!=='k') a.x=amt(); h.a.push(a); }
+  for(let k=0;k<3;k++) h.bd.push(cards());
+  const ns=u8(); for(let k=0;k<ns;k++){ const p=u8(); h.sh.push({p,cards:cards(),desc:tok()}); }
+  const nw=u8(); for(let k=0;k<nw;k++){ const p=u8(); h.w.push({p,x:amt()}); }
+  const nc=u8(); for(let k=0;k<nc;k++){ const p=u8(); h.co.push({p,x:amt()}); }
+  const tp=vu(), rk=vu(); h.tp=tp?(tp-1)/unit:null; h.rk=rk?(rk-1)/unit:null;
+  if(anon){ const ps=positions(h); h.p.forEach((p,k)=>{ p.n=k===h.hero?'Hero':ps[k]; }); }
+  return h;
+}
+async function encode(h,anon){ return encode2(h,anon); }
 async function decode(code){
-  code=code.trim().replace(/^.*#/,'').toLowerCase();
+  code=code.trim().replace(/^.*#/,'');
+  if(code[0]==='1') return decode2(code.slice(1));
+  code=code.toLowerCase();
   let bytes=unb32(code.slice(1));
   if(code[0]==='z') bytes=await pipe(bytes,new DecompressionStream('deflate-raw'));
   else if(code[0]!=='j') throw new Error('Ugyldig kode');
@@ -459,7 +505,7 @@ async function tryLoad(text){
   $('err').textContent='';
   try{
     const t=text.trim();
-    if(/^[zj][a-z2-7]{20,}$/i.test(t.replace(/^.*#/,''))&&!/\s/.test(t)){ load(await decode(t)); }
+    const tc=t.replace(/^.*#/,''); if(!/\s/.test(t)&&(/^[zj][a-z2-7]{20,}$/i.test(tc)||/^1[0-9A-Za-z]{10,}$/.test(tc))){ load(await decode(t)); }
     else load(parse(t));
     return true;
   }catch(e){ $('err').textContent=e.message||'Kunne ikke lese hånden.'; return false; }
