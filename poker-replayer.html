@@ -17,6 +17,7 @@
   --brass:#d9a63a; --card:#fbfaf5; --back1:#8c2f2f; --back2:#6e2222;
   --s-s:#1a1a1a; --s-h:#c42b2b; --s-d:#1f5fb8; --s-c:#1f7d3c;
   --t-fold:#59645e; --t-pass:#2c6a9a; --t-aggr:#a8402e;
+  --a-check:#5d7f96; --a-call:#2f7fc1; --a-bet:#d9822b; --a-raise:#c9402e; --a-allin:#8b2fc0; --a-post:#4b5a52; --a-win:#d9a63a;
   --font-ui:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
   --font-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
 }
@@ -53,14 +54,17 @@ h1{font-size:22px;font-weight:700;margin:0;letter-spacing:.01em;text-wrap:balanc
 .name{font-weight:600;font-size:clamp(11px,1.6vw,14px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stack{font-family:var(--font-num);font-size:clamp(10px,1.45vw,13px);color:var(--brass);font-variant-numeric:tabular-nums;white-space:nowrap}
 .stack .pos{color:#9fb0a7;margin-right:4px;font-family:var(--font-ui);font-weight:600;letter-spacing:.04em}
-.tag{margin-top:4px;font-size:clamp(10px,1.35vw,12px);font-weight:700;letter-spacing:.03em;color:#fff;border-radius:5px;padding:1px 7px;white-space:nowrap;min-height:1.2em}
+.tag{margin-top:5px;font-size:clamp(11px,1.5vw,14px);font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;border-radius:6px;padding:2px 9px;white-space:nowrap;min-height:1.3em;box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .tag:empty{visibility:hidden}
-.tag.fold{background:var(--t-fold)}.tag.pass{background:var(--t-pass)}.tag.aggr{background:var(--t-aggr)}.tag.win{background:var(--brass);color:#1b1408}
+.tag.fold{background:var(--t-fold);opacity:.85}.tag.check{background:var(--a-check)}.tag.call{background:var(--a-call)}.tag.bet{background:var(--a-bet)}.tag.raise{background:var(--a-raise)}.tag.allin{background:var(--a-allin)}.tag.post{background:var(--a-post)}.tag.win{background:var(--a-win);color:#1b1408}
 .desc{margin-top:3px;font-size:clamp(10px,1.3vw,12px);color:#e9efe9;background:rgba(0,0,0,.45);border-radius:5px;padding:1px 6px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .desc:empty{display:none}
-.bet{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:4px;font-family:var(--font-num);font-size:clamp(10px,1.4vw,13px);color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums}
-.bet i{width:13px;height:13px;border-radius:50%;background:var(--card);border:3px dashed var(--t-aggr);box-sizing:border-box;flex:none}
-.bet span{background:rgba(0,0,0,.45);border-radius:5px;padding:0 5px}
+.betpos{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:5px;font-family:var(--font-num);font-size:clamp(11px,1.5vw,14px);font-weight:600;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums;z-index:2;--ac:var(--a-post)}
+.betpos.check{--ac:var(--a-check)}.betpos.call{--ac:var(--a-call)}.betpos.bet{--ac:var(--a-bet)}.betpos.raise{--ac:var(--a-raise)}.betpos.allin{--ac:var(--a-allin)}.betpos.win{--ac:var(--a-win)}
+.chips{display:flex;flex-direction:column-reverse;align-items:center}
+.chips b{display:block;width:clamp(14px,2vw,19px);height:clamp(5px,.7vw,7px);border-radius:50%;background:var(--ac);border:1.5px dashed rgba(255,255,255,.85);box-sizing:border-box;margin-top:-2px;box-shadow:0 1px 2px rgba(0,0,0,.5)}
+.betpos span{background:rgba(0,0,0,.6);border:1.5px solid var(--ac);border-radius:6px;padding:1px 6px}
+.fly{position:absolute;transform:translate(-50%,-50%);z-index:3;pointer-events:none}
 .dbtn{position:absolute;transform:translate(-50%,-50%);width:clamp(16px,2.2vw,22px);height:clamp(16px,2.2vw,22px);border-radius:50%;background:#f4f1e8;color:#1b1b1b;font-weight:700;font-size:clamp(9px,1.2vw,12px);display:grid;place-items:center;box-shadow:0 2px 4px rgba(0,0,0,.4)}
 .center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;max-width:62%}
 .pot{font-family:var(--font-num);font-size:clamp(11px,1.6vw,14px);color:#fff;background:rgba(0,0,0,.35);border-radius:99px;padding:2px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -78,7 +82,16 @@ h1{font-size:22px;font-weight:700;margin:0;letter-spacing:.01em;text-wrap:balanc
 .card.empty{background:transparent;border:1.5px dashed rgba(255,255,255,.2);box-shadow:none}
 
 /* narration + controls */
-.narr{font-size:17px;font-weight:600;min-height:1.4em;text-align:center;text-wrap:balance}
+.narr{font-size:18px;font-weight:600;min-height:1.4em;text-align:center;text-wrap:balance;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px}
+.narr2{font-family:var(--font-num);font-size:13px;color:var(--muted);text-align:center;min-height:1.2em;margin-top:-6px;font-variant-numeric:tabular-nums}
+.narr2 .plus{color:var(--a-bet);font-weight:600}
+.vb{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#fff;border-radius:6px;padding:3px 9px;background:var(--a-post)}
+.vb.check{background:var(--a-check)}.vb.call{background:var(--a-call)}.vb.bet{background:var(--a-bet)}.vb.raise{background:var(--a-raise)}.vb.allin{background:var(--a-allin)}.vb.fold{background:var(--t-fold)}.vb.win{background:var(--a-win);color:#1b1408}.vb.street{background:var(--accent);color:var(--accent-ink)}
+.lb{display:inline-block;min-width:44px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;border-radius:4px;padding:1px 5px;margin-right:6px;vertical-align:1px;background:var(--a-post)}
+.lb.check{background:var(--a-check)}.lb.call{background:var(--a-call)}.lb.bet{background:var(--a-bet)}.lb.raise{background:var(--a-raise)}.lb.allin{background:var(--a-allin)}.lb.fold{background:var(--t-fold)}.lb.win{background:var(--a-win);color:#1b1408}
+.pot:empty{display:none}
+.result:has(.empty-msg){background:none;padding:0}
+.empty-msg{color:#e9efe9;font-size:clamp(13px,1.8vw,16px);text-align:center;background:rgba(0,0,0,.35);border-radius:8px;padding:8px 14px}
 .controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px}
 button{font-family:var(--font-ui);font-size:14px;font-weight:600;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 button:hover{border-color:var(--accent)}
@@ -128,6 +141,7 @@ label.chk input{accent-color:var(--accent);width:16px;height:16px}
         <div class="center"><div class="pot" id="pot"></div><div class="board" id="board"></div><div class="result" id="result"></div></div>
       </div>
       <div class="narr" id="narr" aria-live="polite"></div>
+      <div class="narr2" id="narr2"></div>
       <div class="controls">
         <button id="bStart" aria-label="Til start"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
         <button id="bPrev" aria-label="Forrige steg"><svg viewBox="0 0 24 24"><path d="M17 5v14L6 12z"/></svg>Forrige</button>
@@ -150,37 +164,7 @@ label.chk input{accent-color:var(--accent);width:16px;height:16px}
       </div>
       <details class="box" id="importBox" open>
         <summary>Lim inn hånd</summary>
-        <textarea id="hh" spellcheck="false" aria-label="Håndhistorikk">GAME #12616701465 Version:26.7.1.21 Uncalled:Y Texas Hold'em NL €0.10/€0.20 2026-11-01 18:33:52/GMT
-Table Info: Size: 6, Blinds: 0.10/0.20
-Table Filipstad, 1087124833
-Seat 1: Hugo3301 (€20.00 in chips)
-Seat 3: veetituominen (€18.97 in chips)  DEALER
-Seat 5: Talentedcube55 (€22.47 in chips)
-Seat 6: Vivaldi (€25.00 in chips)
-Seat 8: broodskoy (€22.18 in chips)
-Seat 10: MARTELUX (€23.93 in chips)
-Talentedcube55: Post SB €0.10
-Vivaldi: Post BB €0.20
-*** HOLE CARDS ***
-Dealt to Talentedcube55 [HA CQ]
-broodskoy: Fold
-MARTELUX: Fold
-Hugo3301: Fold
-veetituominen: Raise (NF) €0.40
-Talentedcube55: Raise (NF) €1.60
-Vivaldi: Fold
-veetituominen: Raise (NF) €5.00
-Talentedcube55: Raise (NF) €22.47
-veetituominen: Allin €13.97
-*** FLOP *** [D9 S4 CK]
-*** TURN *** [H3]
-*** RIVER *** [C6]
-*** SUMMARY ***
-Total pot €38.14 Rake €1.90
-veetituominen: Shows [C5 D5] One Pair, Fives
-Talentedcube55: Shows [HA CQ] High Card, Ace
-veetituominen: wins €36.24
-Talentedcube55: cashed out €16.56</textarea>
+        <textarea id="hh" spellcheck="false" aria-label="Håndhistorikk" placeholder="Lim inn håndhistorikk fra Epicbet her, eller en delingslenke."></textarea>
         <div class="row"><button class="primary" id="bLoad">Vis hånd</button><button id="bClear">Tøm</button></div>
         <p class="hint">Lim inn håndhistorikk fra Epicbet, eller en delingskode.</p>
         <div class="err" id="err"></div>
@@ -295,31 +279,31 @@ const r2=x=>Math.round(x*100)/100;
 function build(h){
   const P=h.p.map(p=>({st:p.st,bet:0,tot:0,f:false,ai:false,act:null,sc:null,desc:'',won:0,co:0}));
   let pot=0,cur=0; const board=[],steps=[];
-  const snap=(t,o={})=>steps.push({t,actor:o.actor??-1,street:cur,kind:o.kind||'act',pot:r2(pot),board:[...board],P:P.map(q=>({...q})),res:o.res||null});
+  const snap=(t,o={})=>steps.push({t,actor:o.actor??-1,street:cur,kind:o.kind||'act',type:o.type||'',add:o.add||0,pot:r2(pot),board:[...board],P:P.map(q=>({...q})),res:o.res||null});
   const put=(q,x)=>{ x=Math.max(0,Math.min(x,q.st)); q.st=r2(q.st-x); q.bet=r2(q.bet+x); q.tot=r2(q.tot+x); if(q.st<=0.004){q.st=0;q.ai=true;} return x; };
   for(const a of h.a.filter(a=>a.t==='post')){ const q=P[a.p];
     if(/ANTE|DEAD/i.test(a.k||'')){ const x=Math.min(a.x,q.st); q.st=r2(q.st-x); q.tot=r2(q.tot+x); pot=r2(pot+x); if(q.st<=0.004){q.st=0;q.ai=true;} continue; }
-    put(q,a.x); q.act={k:a.k||'Post',x:q.bet,c:'pass'}; }
+    put(q,a.x); q.act={k:a.k||'Post',x:q.bet,c:'post'}; }
   snap(()=>pot>0?`Blinds er lagt, ante ${M(pot)} i potten`:'Blinds er lagt',{kind:'start'});
   const collect=()=>{ pot=r2(pot+P.reduce((t,q)=>t+q.bet,0)); P.forEach(q=>{q.bet=0; if(!q.f) q.act=null;}); };
-  const deal=s=>{ collect(); const c=h.bd[s-1]||[]; board.push(...c); cur=s; snap(()=>STREET[s]+(c.length?': '+c.map(cardTxt).join(' '):''),{kind:'street'}); };
+  const deal=s=>{ collect(); const c=h.bd[s-1]||[]; board.push(...c); cur=s; snap(()=>STREET[s]+(c.length?': '+c.map(cardTxt).join(' '):''),{kind:'street',type:'street'}); };
   const acts=h.a.filter(a=>a.t!=='post');
   acts.forEach((a,i)=>{
     while(cur<a.s) deal(cur+1);
-    const q=P[a.p], p=a.p; let t;
-    if(a.t==='f'){ q.f=true; q.act={k:'Fold',c:'fold'}; t=()=>`${N(p)} folder`; }
-    else if(a.t==='k'){ q.act={k:'Check',c:'pass'}; t=()=>`${N(p)} sjekker`; }
-    else if(a.t==='c'){ const x=put(q,a.x), ai=q.ai; q.act={k:ai?'All-in':'Call',x:q.bet,c:'pass'}; t=()=>`${N(p)} syner ${M(x)}${ai?' (all-in)':''}`; }
-    else if(a.t==='b'){ const x=put(q,a.x), ai=q.ai; q.act={k:ai?'All-in':'Bet',x:q.bet,c:'aggr'}; t=()=>`${N(p)} better ${M(x)}${ai?' (all-in)':''}`; }
-    else if(a.t==='r'){ put(q,a.x-q.bet); const to=q.bet, ai=q.ai; q.act={k:ai?'All-in':'Raise',x:to,c:'aggr'}; t=()=>`${N(p)} raiser til ${M(to)}${ai?' (all-in)':''}`; }
-    else { put(q,a.x); q.ai=true; const to=q.bet; q.act={k:'All-in',x:to,c:'aggr'}; t=()=>`${N(p)} er all-in, ${M(to)} totalt`; }
-    snap(t,{actor:p});
+    const q=P[a.p], p=a.p; let t, add=0, ty;
+    if(a.t==='f'){ q.f=true; ty='fold'; q.act={k:'Fold',c:ty}; t=()=>`${N(p)} folder`; }
+    else if(a.t==='k'){ ty='check'; q.act={k:'Check',c:ty}; t=()=>`${N(p)} sjekker`; }
+    else if(a.t==='c'){ add=put(q,a.x); const ai=q.ai; ty=ai?'allin':'call'; q.act={k:ai?'All-in':'Call',x:q.bet,c:ty}; t=()=>`${N(p)} syner ${M(add)}${ai?' (all-in)':''}`; }
+    else if(a.t==='b'){ add=put(q,a.x); const ai=q.ai; ty=ai?'allin':'bet'; q.act={k:ai?'All-in':'Bet',x:q.bet,c:ty}; t=()=>`${N(p)} better ${M(add)}${ai?' (all-in)':''}`; }
+    else if(a.t==='r'){ add=put(q,a.x-q.bet); const to=q.bet, ai=q.ai; ty=ai?'allin':'raise'; q.act={k:ai?'All-in':'Raise',x:to,c:ty}; t=()=>`${N(p)} raiser til ${M(to)}${ai?' (all-in)':''}`; }
+    else { add=put(q,a.x); q.ai=true; const to=q.bet; ty='allin'; q.act={k:'All-in',x:to,c:ty}; t=()=>`${N(p)} er all-in, ${M(to)} totalt`; }
+    snap(t,{actor:p,type:ty,add});
     if(i===acts.length-1){
       let mx=0; P.forEach((q,j)=>{ if(q.tot>P[mx].tot) mx=j; });
       const second=Math.max(0,...P.filter((_,j)=>j!==mx).map(q=>q.tot));
       const d=r2(P[mx].tot-second);
       if(d>0.004){ const m=P[mx]; m.bet=r2(m.bet-d); m.tot=r2(m.tot-d); m.st=r2(m.st+d); if(m.act&&m.act.x!=null) m.act={...m.act,x:m.bet};
-        snap(()=>`${M(d)} ikke synt, tilbake til ${N(mx)}`,{actor:mx,kind:'return'}); }
+        snap(()=>`${M(d)} ikke synt, tilbake til ${N(mx)}`,{actor:mx,kind:'return',type:'return'}); }
     }
   });
   if(P.filter(q=>!q.f).length>1) for(let s=cur+1;s<=3;s++) if((h.bd[s-1]||[]).length) deal(s);
@@ -330,7 +314,7 @@ function build(h){
   h.co.forEach(c=>{ P[c.p].co=c.x; P[c.p].st=r2(P[c.p].st+c.x); });
   pot=0;
   const res={w:h.w,co:h.co,rk:h.rk,total};
-  snap(()=>[...h.w.map(w=>`${N(w.p)} vinner ${M(w.x)}`),...h.co.map(c=>`${N(c.p)} cashet ut ${M(c.x)}`)].join(' · ')||'Ferdig',{kind:'result',res});
+  snap(()=>[...h.w.map(w=>`${N(w.p)} vinner ${M(w.x)}`),...h.co.map(c=>`${N(c.p)} cashet ut ${M(c.x)}`)].join(' · ')||'Ferdig',{kind:'result',type:'win',res});
   const warn=(h.tp!=null && Math.abs(h.tp-total)>0.02)?`Beregnet pott (${total}) avviker fra historikken (${h.tp}).`:'';
   return {steps,warn};
 }
@@ -351,10 +335,10 @@ function cardEl(c,cls=''){ const e=document.createElement('div');
 
 let seatEls=[], betEls=[], dEl=null;
 function setupTable(){
-  const tb=$('table'); tb.querySelectorAll('.seat,.bet,.dbtn').forEach(e=>e.remove());
+  const tb=$('table'); tb.querySelectorAll('.seat,.betpos,.dbtn').forEach(e=>e.remove());
   seatEls=H.p.map((_,j)=>{ const s=document.createElement('div'); s.className='seat'+(j===H.hero?' hero':'');
     s.innerHTML='<div class="hole"></div><div class="plate"><div class="name"></div><div class="stack"></div></div><div class="tag"></div><div class="desc"></div>'; tb.appendChild(s); return s; });
-  betEls=H.p.map(()=>{ const b=document.createElement('div'); b.className='bet'; b.innerHTML='<i></i><span></span>'; b.hidden=true; tb.appendChild(b); return b; });
+  betEls=H.p.map(()=>{ const b=document.createElement('div'); b.className='betpos'; b.innerHTML='<div class="chips"></div><span></span>'; b.hidden=true; tb.appendChild(b); return b; });
   dEl=document.createElement('div'); dEl.className='dbtn'; dEl.textContent='D'; tb.appendChild(dEl);
   layout();
 }
@@ -385,8 +369,10 @@ function render(){
     const tag=s.querySelector('.tag'); tag.className='tag'; tag.textContent='';
     if(st.kind==='result' && q.co){ tag.textContent='Cash out '+M(q.co); tag.classList.add('win'); }
     else if(q.act){ tag.textContent=q.act.k+(q.act.x!=null&&q.act.c!=='fold'?' '+M(q.act.x):''); tag.classList.add(q.act.c); }
+    if(st.actor===j && st.kind==='act' && animOK()) tag.animate([{transform:'scale(1.4)'},{transform:'scale(1)'}],{duration:320,easing:'cubic-bezier(.2,.9,.3,1.3)'});
     s.querySelector('.desc').textContent=q.desc||'';
     const b=betEls[j]; b.hidden=!(q.bet>0); b.querySelector('span').textContent=M(q.bet);
+    b.className='betpos '+((q.act&&q.act.c)||'post'); b.querySelector('.chips').innerHTML=chipHTML(q.bet);
   });
   const bets=st.P.reduce((t,q)=>t+q.bet,0);
   $('pot').textContent=st.kind==='result'?'Pott '+M(st.res.total):'Pott '+M(st.pot)+(bets>0?' · totalt '+M(r2(st.pot+bets)):'');
@@ -394,11 +380,22 @@ function render(){
   const r=$('result');
   if(st.kind==='result'){ const x=st.res; r.innerHTML=[...x.w.map(w=>`<b>${esc(N(w.p))}</b> vinner ${M(w.x)}`),...x.co.map(c=>`${esc(N(c.p))} cashet ut ${M(c.x)}`),x.rk!=null?`Rake ${M(x.rk)}`:''].filter(Boolean).join('<br>'); }
   else r.innerHTML='';
-  $('narr').textContent=st.t();
+  tb_clearFly();
+  const LBL={check:'Check',call:'Call',bet:'Bet',raise:'Raise',allin:'All-in',fold:'Fold',win:'Resultat',street:STREET[st.street],return:'Retur'};
+  const nb=$('narr'); nb.textContent='';
+  if(st.type&&LBL[st.type]){ const v=document.createElement('span'); v.className='vb '+st.type; v.textContent=LBL[st.type]; nb.appendChild(v); }
+  const tx=document.createElement('span'); tx.textContent=st.t(); nb.appendChild(tx);
+  const n2=$('narr2'); const totNow=r2(st.pot+bets);
+  if(st.kind==='act'&&st.add>0) n2.innerHTML=`<span class="plus">+${esc(M(st.add))}</span> i potten · totalt ${esc(M(totNow))}`;
+  else if(st.kind==='act'&&st.type==='check') n2.textContent=`Ingen penger inn · totalt ${M(totNow)}`;
+  else if(st.kind==='act'&&st.type==='fold') n2.textContent=`Gir opp ${M(st.P[st.actor].tot)} · totalt ${M(totNow)}`;
+  else if(st.kind==='result') n2.textContent=st.res.rk!=null?`Pott ${M(st.res.total)} · rake ${M(st.res.rk)}`:`Pott ${M(st.res.total)}`;
+  else n2.textContent=`Pott ${M(totNow)}`;
   $('scrub').value=i; $('count').textContent=`${i+1} / ${S.length}`;
   [...$('log').querySelectorAll('li.step')].forEach(li=>li.classList.toggle('cur',+li.dataset.i===i));
   const curLi=$('log').querySelector('li.cur'); if(curLi){ const lg=$('log'); const top=curLi.offsetTop-lg.offsetTop; if(top<lg.scrollTop||top>lg.scrollTop+lg.clientHeight-30) lg.scrollTop=top-60; }
 }
+function tb_clearFly(){ /* flying chips clean themselves up */ }
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function renderLog(){
   const lg=$('log'); lg.textContent=''; let last=-1;
@@ -408,7 +405,9 @@ function renderLog(){
       const hd=document.createElement('li'); hd.className='st';
       hd.textContent=k===0?'Preflop':st.kind==='street'?STREET[st.street]:st.kind==='show'?'Showdown':'Resultat'; lg.appendChild(hd);
     }
-    const li=document.createElement('li'); li.className='step'; li.dataset.i=k; li.tabIndex=0; li.textContent=st.t();
+    const li=document.createElement('li'); li.className='step'; li.dataset.i=k; li.tabIndex=0;
+    if(st.kind==='act'&&st.type){ const b=document.createElement('span'); b.className='lb '+st.type; b.textContent={check:'Check',call:'Call',bet:'Bet',raise:'Raise',allin:'All-in',fold:'Fold'}[st.type]; li.appendChild(b); }
+    li.appendChild(document.createTextNode(st.t()));
     li.onclick=()=>go(k); li.onkeydown=e=>{ if(e.key==='Enter') go(k); }; lg.appendChild(li); last=st.street;
   });
 }
@@ -419,9 +418,40 @@ function load(h){
   $('anon').disabled=!!h.an; if(h.an) $('anon').checked=true;
   setupTable(); meta(); renderLog(); render();
 }
-function go(k){ i=Math.max(0,Math.min(S.length-1,k)); render(); }
+function chipHTML(x){ if(!(x>0)||!H) return ''; const n=Math.max(1,Math.min(6,Math.round(1+Math.log2(Math.max(1,x/H.bb))))); return '<b></b>'.repeat(n); }
+function animOK(){ try{ return !matchMedia('(prefers-reduced-motion: reduce)').matches && !!Element.prototype.animate; }catch(e){ return false; } }
+function flyChips(fromL,fromT,toL,toT,amount,cls,delay=0){
+  const tb=$('table'); const f=document.createElement('div'); f.className='fly betpos '+cls;
+  f.innerHTML=`<div class="chips">${chipHTML(amount)}</div>`; f.style.left=toL; f.style.top=toT; tb.appendChild(f);
+  const a=f.animate([{left:fromL,top:fromT,opacity:1},{left:toL,top:toT,opacity:1,offset:.85},{left:toL,top:toT,opacity:0}],{duration:520,delay,easing:'cubic-bezier(.3,.7,.3,1)',fill:'both'});
+  a.onfinish=()=>f.remove(); a.oncancel=()=>f.remove();
+}
+const POT_L='50%', POT_T='44%';
+function animateStep(prev,st){
+  if(!animOK()) return;
+  if(st.kind==='act' && st.add>0 && st.actor>=0){
+    const b=betEls[st.actor], s=seatEls[st.actor];
+    b.animate([{left:s.style.left,top:s.style.top,opacity:.2},{left:b.style.left,top:b.style.top,opacity:1}],{duration:380,easing:'cubic-bezier(.2,.8,.3,1)'});
+  }
+  if((st.kind==='street'||st.kind==='show'||st.kind==='result') && prev){
+    prev.P.forEach((q,j)=>{ if(q.bet>0) flyChips(betEls[j].style.left,betEls[j].style.top,POT_L,POT_T,q.bet,(q.act&&q.act.c)||'post'); });
+  }
+  if(st.kind==='result'){
+    st.res.w.forEach(w=>flyChips(POT_L,POT_T,seatEls[w.p].style.left,seatEls[w.p].style.top,w.x,'win',250));
+  }
+  const potGrew=(st.kind!=='act')&&prev&&prev.P.some(q=>q.bet>0);
+  if(potGrew) $('pot').animate([{transform:'scale(1)'},{transform:'scale(1.18)'},{transform:'scale(1)'}],{duration:420,delay:350});
+}
+function go(k){ k=Math.max(0,Math.min(S.length-1,k)); const prev=S[i], fwd=(k===i+1); i=k; render(); if(fwd) animateStep(prev,S[i]); }
+function emptyState(){
+  H=null; S=[]; i=0; const tb=$('table'); tb.querySelectorAll('.seat,.betpos,.dbtn,.fly').forEach(e=>e.remove());
+  $('pot').textContent=''; const bd=$('board'); bd.textContent=''; for(let k=0;k<5;k++) bd.appendChild(cardEl(null,'empty'));
+  $('result').innerHTML='<div class="empty-msg">Lim inn en håndhistorikk eller en delingslenke for å starte</div>';
+  $('narr').textContent='Ingen hånd lastet'; $('narr2').textContent=''; $('count').textContent=''; $('scrub').max=0; $('meta').textContent=''; $('log').textContent='';
+  $('importBox').open=true;
+}
 function stop(){ if(timer){ clearInterval(timer); timer=null; } $('playTxt').textContent='Spill av'; $('playIco').innerHTML='<path d="M7 5v14l12-7z"/>'; }
-function play(){ if(timer){ stop(); return; } if(i>=S.length-1) i=0; render();
+function play(){ if(!S.length) return; if(timer){ stop(); return; } if(i>=S.length-1) i=0; render();
   $('playTxt').textContent='Pause'; $('playIco').innerHTML='<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
   timer=setInterval(()=>{ if(i>=S.length-1){ stop(); return; } go(i+1); },1100); }
 
@@ -464,7 +494,7 @@ function init(){
   const fromHash=async()=>{ const hsh=decodeURIComponent(location.hash.slice(1)); if(!hsh||hsh===lastCode) return false;
     try{ load(await decode(hsh)); lastCode=hsh; $('sharedBadge').hidden=false; $('importBox').open=false; return true; }catch(e){ $('err').textContent='Delingslenken kunne ikke leses.'; return false; } };
   window.addEventListener('hashchange',fromHash);
-  fromHash().then(ok=>{ if(!ok) tryLoad($('hh').value); });
+  fromHash().then(ok=>{ if(!ok) emptyState(); });
 }
 if(typeof document!=='undefined') init();
 if(typeof module!=='undefined') module.exports={parse,build,encode,decode,positions,setH:(h)=>{H=h;pos=positions(h);}};
